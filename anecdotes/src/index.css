@@ -17,11 +17,7 @@ code {
   width:100%;
   text-align:center;
 }
+
 .button{
   display:inline-block;
-}
-
-table, tr, td {
-  width: 100px;
-  padding: 5px;
 }
