@@ -18,35 +18,43 @@ const Hello = ({name, age}) => {
 
 const Display = ({ counter }) => (<div>{counter}</div>)
 
-const Button = ({ handleClick, text }) => (
-  <button onClick={handleClick}>
-      {text}
+const Button = (props) => (
+  <button onClick={props.handleClick}>
+      {props.text}
     </button>
 )
 
-const App = (props) => {
-  const [ counter, setCounter ] = useState(0)
-
-  const increaseByOne = () => setCounter(counter + 1)
-  const decreaseByOne = () => setCounter(counter - 1)
-  const setToZero = () => setCounter(0)
+const History = (props) => {
+  if (props.allClicks.length == 0) {
+    return (
+      <div>
+        this app is used by pressing the buttons
+      </div>
+    )
+  }
 
   return (
     <div>
-      <Display counter={counter} />
-      <Button
-        handleClick={increaseByOne}
-        text='plus'
-      />
-      <Button
-        handleClick={setToZero}
-        text='zero'
-      />
-      <Button
-        handleClick={decreaseByOne}
-        text='minus'
-      />
-      
+      button press history: {props.allClicks.join(' ')}
+    </div>
+  )
+}
+
+const App = (props) => {
+  const [value, setValue] = useState(10)
+
+  const hello = (who) => () => {
+      console.log('hello', who)
+  }
+
+  const setToValue = (newValue) => () => {
+    setValue(newValue)
+  }
+
+  return (
+    <div>
+      {value}
+      <Button handleClick={setToValue(1000)} text='thousand'/>
     </div>
   )
 }
