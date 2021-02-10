@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 
 const Person = (props) => {
     return(
@@ -37,66 +38,72 @@ const Filter = (props) => {
 }
 
 const App = () => {
-    const [persons, setPersons] = useState([
-        { name: 'Arto Hellas', number: '040-123456' },
-        { name: 'Ada Lovelace', number: '39-44-5323523' },
-        { name: 'Dan Abramov', number: '12-43-234345' },
-        { name: 'Mary Poppendieck', number: '39-23-6423122' }
-    ])
-  const [ newName, setNewName ] = useState('')
-  const [ newNumber, setNewNumber] = useState('')
-  const [ searchTerm, setSearchTerm ] = useState('')
+    const [ persons, setPersons ] = useState([])
+    const [ newName, setNewName ] = useState('')
+    const [ newNumber, setNewNumber] = useState('')
+    const [ searchTerm, setSearchTerm ] = useState('')
 
-  const addPerson = (event) => {
-    event.preventDefault()
-
-    if (persons.some(person => person.name == newName)) {
-        window.alert(`${newName} is already in the phonebook`)
-    } else {
-        const personObject = {
-            name: newName,
-            number: newNumber
-        }
-        setPersons(persons.concat(personObject))
-        setNewName('')
+    const fetchFromDB = () => {
+        console.log('effect')
+        axios
+            .get('http://localhost:3001/persons')
+            .then(response => {
+                console.log('promise fulfilled')
+                setPersons(response.data)
+            })
     }
-  }
+    useEffect(fetchFromDB, [])
 
-  const handleNameChange = (event) => {
-      setNewName(event.target.value)
-  }
+    const addPerson = (event) => {
+        event.preventDefault()
 
-  const handleNumberChange = (event) => {
-      setNewNumber(event.target.value)
-  }
+        if (persons.some(person => person.name == newName)) {
+            window.alert(`${newName} is already in the phonebook`)
+        } else {
+            const personObject = {
+                name: newName,
+                number: newNumber
+            }
+            setPersons(persons.concat(personObject))
+            setNewName('')
+        }
+    }
 
-  const handleSearchChange = (event) => {
-      setSearchTerm(event.target.value)
-  }
+    const handleNameChange = (event) => {
+        setNewName(event.target.value)
+    }
 
-  const personsToShow = searchTerm == ''
-    ? persons
-    : persons.filter(person => person.name.includes(searchTerm))
+    const handleNumberChange = (event) => {
+        setNewNumber(event.target.value)
+    }
 
-  return (
-    <div>
-      <h2>Phonebook</h2>
-        <Filter 
-            term={searchTerm} 
-            handler={handleSearchChange} 
-        />
-      <h2>Add new contact:</h2>
-        <PersonForm 
-            onSubmit={addPerson} 
-            newName={newName} 
-            handleNameChange={handleNameChange}
-            newNumber={newNumber}
-            handleNumberChange={handleNumberChange}     
-        />
-      <h2>Numbers</h2>
-        <Persons persons={personsToShow} />
-    </div>
-  )
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value)
+    }
+
+    const personsToShow = searchTerm == ''
+        ? persons
+        : persons.filter(person => person.name.includes(searchTerm))
+
+    return (
+        <div>
+        <h2>Phonebook</h2>
+            <Filter 
+                term={searchTerm} 
+                handler={handleSearchChange} 
+            />
+        <h2>Add new contact:</h2>
+            <PersonForm 
+                onSubmit={addPerson} 
+                newName={newName} 
+                handleNameChange={handleNameChange}
+                newNumber={newNumber}
+                handleNumberChange={handleNumberChange}     
+            />
+        <h2>Numbers</h2>
+            <Persons persons={personsToShow} />
+        </div>
+    )
 }
 
 export default App
