@@ -1,72 +1,77 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-
-const Person = (props) => {
-    return(
-        <div>
-            {props.name} {props.number}
-        </div>
-    )
-}
-
-const Persons = (props) => {
-    return (
-        <div>
-            {props.persons.map((person) =>
-                <Person key={person.name} name={person.name} number={person.number} />
-            )}
-        </div>
-    )
-}
-
-const PersonForm = (props) => {
-    return (
-        <form onSubmit={props.onSubmit}>
-            <div>name: <input value={props.newName} onChange={props.handleNameChange} /></div>
-            <div>number: <input value={props.newNumber} onChange={props.handleNumberChange} /></div>
-            <div><button type="submit">add</button></div>
-        </form>
-    )
-}
-
-const Filter = (props) => {
-    return (
-        <form>
-            <div>filter names with: <input value={props.term} onChange={props.handler}></input></div>
-        </form>
-    )
-}
+import Phonebook from './components/Phonebook'
+import personService from './services/persons'
 
 const App = () => {
     const [ persons, setPersons ] = useState([])
     const [ newName, setNewName ] = useState('')
     const [ newNumber, setNewNumber] = useState('')
     const [ searchTerm, setSearchTerm ] = useState('')
+    const [ notificationMessage, setNotificationMessage ] = useState(null)
 
-    const fetchFromDB = () => {
-        console.log('effect')
-        axios
-            .get('http://localhost:3001/persons')
-            .then(response => {
-                console.log('promise fulfilled')
-                setPersons(response.data)
+    useEffect(() => {
+        personService
+            .getAll()
+            .then(initialPersons => {
+                setPersons(initialPersons)
             })
-    }
-    useEffect(fetchFromDB, [])
+    }, [])
 
     const addPerson = (event) => {
         event.preventDefault()
 
         if (persons.some(person => person.name == newName)) {
-            window.alert(`${newName} is already in the phonebook`)
+            modifyPerson(persons.find(person => person.name == newName))
         } else {
             const personObject = {
                 name: newName,
                 number: newNumber
             }
-            setPersons(persons.concat(personObject))
-            setNewName('')
+
+            personService
+                .create(personObject)
+                .then(returnedPerson => {
+                    setPersons(persons.concat(personObject))
+                    setNewName('')
+                    setNewNumber('')
+
+                    setNotificationMessage(`Phone number for ${personObject.name} added`)
+                    setTimeout(() => {
+                        setNotificationMessage(null)
+                    }, 5000)
+                })
         }
+    }
+
+    const modifyPerson = (personToChange) => {
+        if (window.confirm(`${personToChange.name} is already in the phonebook, replace the old number with a new one?`)) {
+            const changedPerson = {...personToChange, number: newNumber}
+
+            personService
+                .update(personToChange.id, changedPerson)
+                .then(returnedPerson => {
+                    setPersons(persons.map(person => person.id != personToChange.id ? person : changedPerson))
+                    setNewName('')
+                    setNewNumber('')
+
+                    setNotificationMessage(`Phone number for ${changedPerson.name} changed`)
+                    setTimeout(() => {
+                        setNotificationMessage(null)
+                    }, 5000)
+                })
+        }
+    }
+
+    const deletePerson = (name, id) => {
+
+        if (window.confirm(`Are you sure you want to delete ${name}?`)) {
+            personService
+                .deletePerson(id)
+                .then(deletedPerson => {
+                    setPersons(persons.filter(person => person.id != id))
+                })
+        }
+        
     }
 
     const handleNameChange = (event) => {
@@ -83,25 +88,22 @@ const App = () => {
 
     const personsToShow = searchTerm == ''
         ? persons
-        : persons.filter(person => person.name.includes(searchTerm))
+        : persons.filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
     return (
         <div>
-        <h2>Phonebook</h2>
-            <Filter 
-                term={searchTerm} 
-                handler={handleSearchChange} 
-            />
-        <h2>Add new contact:</h2>
-            <PersonForm 
-                onSubmit={addPerson} 
-                newName={newName} 
+            <Phonebook
+                notificationMessage={notificationMessage}
+                searchTerm={searchTerm}
+                handleSearchChange={handleSearchChange}
+                addPerson={addPerson}
+                newName={newName}
                 handleNameChange={handleNameChange}
                 newNumber={newNumber}
-                handleNumberChange={handleNumberChange}     
+                handleNumberChange={handleNumberChange}
+                personsToShow={personsToShow}
+                deletePerson={deletePerson}
             />
-        <h2>Numbers</h2>
-            <Persons persons={personsToShow} />
         </div>
     )
 }
