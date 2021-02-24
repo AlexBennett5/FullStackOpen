@@ -1,52 +1,35 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
+const Person = require('./models/person')
 
 app.use(cors())
 app.use(express.json())
 app.use(morgan('tiny'))
 app.use(express.static('build'))
 
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-21311"
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-12-121224"
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "123-12313-132"
-    }
-]
-
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(people => {
+        response.json(people)
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-    
-    if (person) {
+    Person.findById(request.params.id).then(person => {
         response.json(person)
-    } else {
-        response.status(404).end()
-    }
+    })
 })
 
 app.get('/api/info', (request, response) => {
-    response.send(`<p>Phonebook has info for ${persons.length} people</p>` +  new Date())
+    Person.find({}).then(people => {
+        response.send(`<p>Phonebook has info for ${people.length} people</p>` +  new Date())
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -55,10 +38,6 @@ app.delete('/api/persons/:id', (request, response) => {
 
     response.status(204).end()
 })
-
-const generateId = () => {
-    return Math.floor(Math.random() * (10000000 - 1) + 1)
-}
 
 app.post('/api/persons', (request, response) => {    
     const body = request.body
@@ -81,14 +60,14 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    const newPerson = {
-        id: generateId(),
+    const newPerson = new Person({
         name: body.name,
-        number: body.number,
-    }
+        number: body.number
+    })
 
-    persons = persons.concat(newPerson)
-    response.json(newPerson)
+    newPerson.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
 })
 
 const unknownEndpoint = (request, response) => {
@@ -97,7 +76,7 @@ const unknownEndpoint = (request, response) => {
   
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
