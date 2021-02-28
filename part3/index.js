@@ -9,27 +9,16 @@ app.use(express.static('build'))
 app.use(express.json())
 
 app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
+  response.send('<h1>Hello World!</h1>')
 })
-  
+
 app.get('/api/notes', (request, response) => {
-    Note.find({}).then(notes => {
-      response.json(notes)
-    })  
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
 })
 
-app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const note = notes.find(note => note.id === id)
-  
-  if (note) {
-    response.json(note)
-  } else {
-    response.status(404).end()
-  }
-})
-
-app.get('/api/notes/:id', (request, response) => {
+app.get('/api/notes/:id', (request, response, next) => {
   Note.findById(request.params.id)
     .then(note => {
       if (note) {
@@ -49,7 +38,7 @@ app.delete('/api/notes/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
   const body = request.body
 
   const note = new Note({
@@ -64,7 +53,7 @@ app.post('/api/notes', (request, response) => {
     })
     .catch(error => next(error))
 })
-  
+
 app.put('/api/notes/:id', (request, response, next) => {
   const body = request.body
 
@@ -102,5 +91,5 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })

@@ -8,3 +8,12 @@ content-type: application/json
     "name": "Billy Blunk",
     "number": "1231-112454123"
 }
+
+###
+POST http://localhost:3001/api/persons/ HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Arto Hellas",
+    "number": "11111231231313123"
+}
