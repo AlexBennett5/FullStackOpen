@@ -1,0 +1,23 @@
+POST http://localhost:3001/api/blogs HTTP/1.1
+content-type: application/json
+
+{
+    "title": "Test Book",
+    "author": "Authorio Author",
+    "url": "www.book.com",
+    "likes": 1243
+}
+
+###
+POST http://localhost:3001/api/blogs HTTP/1.1
+content-type: application/json
+
+{
+    "title": "Test Book 2",
+    "author": "Book Writer",
+    "url": "www.book2.com",
+    "likes": 64563
+}
+
+###
+GET http://localhost:3001/api/blogs/ HTTP/1.1
