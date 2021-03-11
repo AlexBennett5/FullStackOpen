@@ -89,7 +89,6 @@ test('dummy returns one', () => {
 })
 
 describe('total likes', () => {
-  
 
   test('of empty list is zero', () => {
     const result = listHelper.totalLikes([])
